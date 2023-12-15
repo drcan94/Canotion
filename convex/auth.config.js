@@ -1,7 +1,7 @@
 export default {
     providers: [
         {
-            domain: "https://literate-badger-30.clerk.accounts.dev",
+            domain: "https://clerk.drcan.dev",
             applicationID: "convex",
         },
     ],
