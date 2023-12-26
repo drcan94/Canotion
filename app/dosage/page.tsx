@@ -74,6 +74,17 @@ const DosagePage = () => {
       toast.error("Solüsyon miktarını girmelisiniz");
       return;
     }
+
+    if (
+      Number.isNaN(Number(weight)) ||
+      Number.isNaN(Number(infusionSpeed)) ||
+      Number.isNaN(Number(solutionAmount)) ||
+      Number.isNaN(Number(drugAmount))
+    ) {
+      toast.error("Lütfen sadece rakam giriniz");
+      return;
+    }
+
     let speed: number;
     if (weightDependency === "yes") {
       speed = Number(infusionSpeed) * Number(weight);
@@ -153,7 +164,7 @@ const DosagePage = () => {
             <Label>İlaç Kiloya Bağımlı mı?</Label>
             <RadioGroup
               onValueChange={onWeightDependencyChange}
-              className="mt-1 flex flex-col space-y-1"
+              className="my-2 flex flex-col space-y-1"
               defaultValue="yes"
             >
               <div className="flex items-center space-x-2">
@@ -172,7 +183,7 @@ const DosagePage = () => {
               <Input
                 type="number"
                 {...register("weight")}
-                className={cn("mt-1", {
+                className={cn("my-2 -ml-0.5", {
                   "focus-visible:ring-red-500": errors.weight,
                 })}
                 placeholder="Sadece sayısal ifade giriniz"
@@ -186,7 +197,7 @@ const DosagePage = () => {
               {...register("solutionAmount", {
                 onChange: (e) => onSolutonAmountChange(e.target.value),
               })}
-              className={cn("mt-1", {
+              className={cn("my-2 -ml-0.5", {
                 "focus-visible:ring-red-500": errors.solutionAmount,
               })}
               placeholder="Sadece sayısal ifade giriniz"
@@ -231,7 +242,7 @@ const DosagePage = () => {
             </Label>
             <Input
               {...register("drugAmount")}
-              className={cn("mt-1", {
+              className={cn("my-2 -ml-0.5", {
                 "focus-visible:ring-red-500": errors.drugAmount,
               })}
               placeholder="Sadece sayısal ifade giriniz"
@@ -263,7 +274,7 @@ const DosagePage = () => {
             </Label>
             <Input
               {...register("infusionSpeed")}
-              className={cn("mt-1", {
+              className={cn("my-2 -ml-0.5", {
                 "focus-visible:ring-red-500": errors.infusionSpeed,
               })}
               placeholder="Sadece sayısal ifade giriniz"
