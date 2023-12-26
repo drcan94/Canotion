@@ -146,7 +146,7 @@ const DosagePage = () => {
   };
 
   return (
-    <div className="h-full flex flex-col items-center justify-center space-y-4">
+    <div className="min-h-full flex flex-col items-center justify-center space-y-4">
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="grid gap-2">
           <div className="grid gap-1 py-2">
