@@ -98,7 +98,16 @@ const DosagePage = () => {
       infusionSpeedType === "mcg/dk" ||
       infusionSpeedType === "mg/dk"
     ) {
-      speed = speed * 60;
+      speed *= 60;
+    }
+
+    if (
+      infusionSpeedType === "mg/kg/dk" ||
+      infusionSpeedType === "mg/dk" ||
+      infusionSpeedType === "mg/kg/saat" ||
+      infusionSpeedType === "mg/saat"
+    ) {
+      speed *= 1000;
     }
 
     let amount: number;
