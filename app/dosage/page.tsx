@@ -166,11 +166,11 @@ const DosagePage = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center justify-center space-y-4">
-      <form onSubmit={handleSubmit(onSubmit)}>
+    <div className="min-h-full min-w-full flex flex-wrap justify-center py-2 px-4 gap-x-10">
+      <form className="min-h-full" onSubmit={handleSubmit(onSubmit)}>
         <div className="grid gap-2">
           <div className="grid gap-1 py-2">
-            <Label>İlaç Kiloya Bağımlı mı?</Label>
+            <Label className="font-bold text-xl">İlaç Kiloya Bağımlı mı?</Label>
             <RadioGroup
               onValueChange={onWeightDependencyChange}
               className="my-2 flex flex-col space-y-1"
