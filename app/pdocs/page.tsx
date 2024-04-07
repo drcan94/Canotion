@@ -176,7 +176,8 @@ const Home: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    isClient && Cookie.set("patients", JSON.stringify(patients));
+    isClient &&
+      Cookie.set("patients", JSON.stringify(patients), { expires: 0.5 });
   }, [patients, isClient]);
 
   const handleDelete = (id: number) => {
