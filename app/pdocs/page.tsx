@@ -59,7 +59,7 @@ const InlineEditField: React.FC<{
           />
         )
       ) : (
-        <span>{editableText || "Belirtilmemiş"}</span>
+        <span>{editableText || ""}</span>
       )}
     </div>
   );
@@ -91,7 +91,7 @@ const PatientAccordion: React.FC<{
         <div>{new Date(patient.entryTime).toLocaleString()}</div>
       </div>
       {isOpen && (
-        <div className="p-4 bg-gray-100">
+        <div className="p-4 bg-gray-100 dark:bg-gray-900">
           <div className="my-2">
             Şikayetler:{" "}
             <InlineEditField
@@ -216,50 +216,100 @@ const Home: React.FC = () => {
     patient.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // PDF Oluşturma Fonksiyonu
+  interface IPatientDetail {
+    label: string;
+    value: string | undefined;
+  }
+
   const generatePDF = () => {
     const pdf = new jsPDF();
 
-    // Fontu PDF'e ekleyin
     pdf.addFileToVFS(`${fontName}.ttf`, fontBase64);
     pdf.addFont(`${fontName}.ttf`, fontName, "normal");
+    pdf.setFont(fontName);
 
-    pdf.setFont(fontName); // Kullanmak istediğiniz fontu ayarlayın
+    const drawVerticalLine = () => {
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      pdf.setDrawColor(255, 0, 0); // Kırmızı renk
+      pdf.setLineWidth(0.5); // Çizgi kalınlığı
+      pdf.line(pageWidth / 2, 0, pageWidth / 2, pageHeight); // Sayfanın ortasından dikey çizgi
+    };
 
-    let y = 20; // Başlangıç y koordinatı
+    let leftColumnY = 10;
+    let rightColumnY = 10;
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const columnWidth = pageWidth / 2 - 15;
 
-    patients.forEach((patient) => {
-      pdf.setFontSize(14); // Başlık font boyutu
-      pdf.setTextColor(33, 37, 41); // Başlık metin rengi
-      pdf.text(patient.name, 15, y);
+    drawVerticalLine(); // İlk sayfa için dikey çizgi çek
 
-      y += 10;
+    patients.forEach((patient, index) => {
+      const column = index % 2 === 0 ? "left" : "right";
+      let y = column === "left" ? leftColumnY : rightColumnY;
+      const x = column === "left" ? 10 : pageWidth / 2 + 5;
 
-      const details = [
-        `Şikayetler: ${patient.complaints || "Belirtilmemiş"}`,
-        `Muayene Bulguları: ${patient.examinationFindings || "Belirtilmemiş"}`,
-        `İstenen Tetkikler: ${patient.testsRequested || "Belirtilmemiş"}`,
-        `Tetkik Sonuçları: ${patient.testResults || "Belirtilmemiş"}`,
-        `Hasta Durumu ve Notlar: ${patient.progressNotes || "Belirtilmemiş"}`,
+      pdf.setFontSize(11.2); // %20 küçültülmüş font boyutu
+      pdf.setTextColor(0, 0, 255);
+      const patientHeader = `${patient.name} - Giriş Saati: ${new Date(
+        patient.entryTime
+      ).toLocaleString()}`;
+
+      pdf.text(patientHeader, x, y);
+      y += 8;
+
+      const details: IPatientDetail[] = [
+        { label: "Şikayetler", value: patient.complaints },
+        { label: "Muayene Bulguları", value: patient.examinationFindings },
+        { label: "İstenen Tetkikler", value: patient.testsRequested },
+        { label: "Tetkik Sonuçları", value: patient.testResults },
+        { label: "Hasta Durumu ve Notlar", value: patient.progressNotes },
       ];
 
-      details.forEach((detail) => {
-        pdf.setFontSize(10);
-        pdf.setTextColor(69, 77, 87);
-        pdf.text(detail, 15, y);
-        y += 6;
+      details.forEach(({ label, value }) => {
+        if (y + 8 > 280) {
+          pdf.addPage();
+          drawVerticalLine(); // Yeni sayfa için dikey çizgi çek
+          y = 10;
+        }
+        pdf.setFontSize(9.6);
+        pdf.setTextColor(255, 0, 0);
+        pdf.text(`${label}:`, x, y);
+        y += 4.8;
+
+        pdf.setFontSize(8);
+        pdf.setTextColor(0, 0, 0);
+        const splitText: string[] = pdf.splitTextToSize(
+          value || "Belirtilmemiş",
+          columnWidth - 5
+        );
+        splitText.forEach((line) => {
+          pdf.text(line, x + 5, y);
+          y += 4.8;
+        });
+        y += 4.8;
       });
 
-      y += 6; // Her hasta arasında boşluk
-      pdf.setDrawColor(255, 0, 0); // Ayırıcı çizgi rengi kırmızı
-      pdf.setLineWidth(0.5); // Çizgi kalınlığını ayarla
-      pdf.line(10, y, 200, y); // Ayırıcı çizgi
+      // Hastalar arasına kırmızı çizgi çekme
+      pdf.setDrawColor(255, 0, 0); // Kırmızı renk
+      pdf.setLineWidth(0.5); // Çizgi kalınlığı
+      if (y < 280) {
+        // Sayfanın sonuna gelmeden çizgi çek
+        pdf.line(x, y, x + columnWidth, y);
+        y += 10; // Çizgi sonrası boşluk
+      }
 
-      y += 15; // Çizgi sonrası boşluk
+      if (column === "left") {
+        leftColumnY = y;
+      } else {
+        rightColumnY = y;
+      }
 
-      if (y > 280) {
+      // Herhangi bir sütun sayfanın sonuna ulaştıysa yeni sayfa ekle ve dikey çizgi çek
+      if (leftColumnY > 280 || rightColumnY > 280) {
         pdf.addPage();
-        y = 20;
+        drawVerticalLine();
+        leftColumnY = 10;
+        rightColumnY = 10;
       }
     });
 
@@ -267,7 +317,6 @@ const Home: React.FC = () => {
   };
 
   if (!isClient) {
-    // Client-side rendering yapılana kadar hiçbir şey render etme
     return null;
   }
 
@@ -312,7 +361,7 @@ const Home: React.FC = () => {
 
       {showModal && (
         <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded shadow-md w-1/2">
+          <div className="bg-white dark:bg-black p-6 rounded shadow-md w-1/2">
             <h2 className="text-lg font-semibold mb-4">Yeni Hasta Ekle</h2>
             <div className="mb-4">
               <input
