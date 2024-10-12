@@ -12,7 +12,7 @@ import { useState } from "react";
 
 // Step 1: Setting up the main layout (App Directory)
 export default function Dashboard() {
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState("tr");
 
   type Content = {
     header: string;
